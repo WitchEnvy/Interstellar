@@ -240,7 +240,7 @@ def main_menu():
         print("           Interstellar | M&K")
         print("=======================================")
         print("1. Only Jitter Mode")
-        print("2. Magnet Color Red (Only Recon Legends)")
+        print("2. Aim Assist For M&K (Only Recon Legends)")
         print("3. Keluar")
         print("=======================================")
         pilihan = input("Pilih menu (1/2/3): ")
@@ -258,4 +258,5 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
 
