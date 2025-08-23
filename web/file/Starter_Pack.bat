@@ -28,13 +28,12 @@ python -m pip install --upgrade pip
 
 echo.
 echo [*] Installing required packages...
-pip install opencv-python numpy mss pyserial keyboard requests beautifulsoup4
+python -m pip install pyserial keyboard opencv-python mss numpy requests beautifulsoup4
 
 echo.
 echo ============================================
-echo  Stater_Pack has done.
-echo  Please run interstellar.bat to start app
+echo  ✅ Starter_Pack has done.
+echo  Please run interstellar.bat to start the app
 echo ============================================
 
-echo.
 pause
