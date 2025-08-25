@@ -36,7 +36,7 @@ def find_port(default="COM3"):
 
 SHAKE_PX   = 6
 SHAKE_HZ   = 25
-PULL_DOWN  = 0.5
+PULL_DOWN  = 0.3
 RANDOMIZE  = False
 
 def jitter_loop(ser):
@@ -258,5 +258,6 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
 
 
