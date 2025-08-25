@@ -116,10 +116,10 @@ def run_jitter_mode():
 
 SCAN_WIDTH  = scale_for_monitor(70)   # auto scale
 SCAN_HEIGHT = scale_for_monitor(30)   # auto scale
-PULL_STRENGTH_COLOR = 2.2
+PULL_STRENGTH_COLOR = 1.9
 SLEEP_DELAY = 1 / 165
-HSV_RED_1 = (0, 150, 150)
-HSV_RED_2 = (10, 255, 255)
+HSV_RED_1 = (15, 100, 100)   # bawah
+HSV_RED_2 = (35, 255, 255)   # atas
 HSV_RED_3 = (160, 150, 150)
 HSV_RED_4 = (179, 255, 255)
 
@@ -264,3 +264,4 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
