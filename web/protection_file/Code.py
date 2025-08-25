@@ -9,6 +9,7 @@ import mss
 
 # ── KONFIGURASI GLOBAL ────────────────────────────────────────
 BAUD_RATE = 115200
+# shortcut key helpers
 user32    = ctypes.windll.user32
 GetKey    = user32.GetAsyncKeyState
 GetState  = user32.GetKeyState
@@ -29,22 +30,13 @@ def find_port(default="COM3"):
             return rf"\\.\{p.name}"
     return rf"\\.\{default}"
 
-# ── FUNGSI AUTO SCALE ─────────────────────────────────────────
-def scale_for_monitor(value, base_res=(1920, 1080)):
-    """Skalakan value berdasarkan resolusi monitor saat ini"""
-    screen_w = user32.GetSystemMetrics(0)
-    screen_h = user32.GetSystemMetrics(1)
-    scale_x = screen_w / base_res[0]
-    scale_y = screen_h / base_res[1]
-    return int(value * ((scale_x + scale_y) / 2))
-
 # ============================================================== #
 # 1. ONLY JITTER MODE
 # ============================================================== #
 
-SHAKE_PX   = scale_for_monitor(6)     # auto scale
+SHAKE_PX   = 4
 SHAKE_HZ   = 25
-PULL_DOWN  = 0.5
+PULL_DOWN  = 0.3
 RANDOMIZE  = False
 
 def jitter_loop(ser):
@@ -95,6 +87,7 @@ def jitter_loop(ser):
             time.sleep(dt - elapsed)
 
 def run_jitter_mode():
+    # 🔑 Verifikasi Key dulu
     key = input("Masukkan Key untuk Jitter Mode: ").strip()
     if key != REQUIRED_KEY1:
         print("❌ Key salah! Akses ditolak.")
@@ -114,12 +107,12 @@ def run_jitter_mode():
 # 2. MAGNET COLOR RED
 # ============================================================== #
 
-SCAN_WIDTH  = scale_for_monitor(70)   # auto scale
-SCAN_HEIGHT = scale_for_monitor(30)   # auto scale
-PULL_STRENGTH_COLOR = 1.9
+SCAN_WIDTH = 93
+SCAN_HEIGHT = 40
+PULL_STRENGTH_COLOR = 1.0
 SLEEP_DELAY = 1 / 165
-HSV_RED_1 = (15, 100, 100)   # bawah
-HSV_RED_2 = (35, 255, 255)   # atas
+HSV_RED_1 = (0, 150, 150)
+HSV_RED_2 = (10, 255, 255)
 HSV_RED_3 = (160, 150, 150)
 HSV_RED_4 = (179, 255, 255)
 
@@ -218,6 +211,7 @@ def aim_loop(ser):
             time.sleep(SLEEP_DELAY)
 
 def run_magnet_mode():
+    # 🔑 Verifikasi Key dulu
     key = input("Masukkan Key untuk Magnet Mode: ").strip()
     if key != REQUIRED_KEY2:
         print("❌ Key salah! Akses ditolak.")
@@ -264,4 +258,5 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
 
