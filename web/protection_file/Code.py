@@ -9,7 +9,6 @@ import mss
 
 # ── KONFIGURASI GLOBAL ────────────────────────────────────────
 BAUD_RATE = 115200
-# shortcut key helpers
 user32    = ctypes.windll.user32
 GetKey    = user32.GetAsyncKeyState
 GetState  = user32.GetKeyState
@@ -30,11 +29,20 @@ def find_port(default="COM3"):
             return rf"\\.\{p.name}"
     return rf"\\.\{default}"
 
+# ── FUNGSI AUTO SCALE ─────────────────────────────────────────
+def scale_for_monitor(value, base_res=(1920, 1080)):
+    """Skalakan value berdasarkan resolusi monitor saat ini"""
+    screen_w = user32.GetSystemMetrics(0)
+    screen_h = user32.GetSystemMetrics(1)
+    scale_x = screen_w / base_res[0]
+    scale_y = screen_h / base_res[1]
+    return int(value * ((scale_x + scale_y) / 2))
+
 # ============================================================== #
 # 1. ONLY JITTER MODE
 # ============================================================== #
 
-SHAKE_PX   = 6
+SHAKE_PX   = scale_for_monitor(6)     # auto scale
 SHAKE_HZ   = 25
 PULL_DOWN  = 0.5
 RANDOMIZE  = False
@@ -87,7 +95,6 @@ def jitter_loop(ser):
             time.sleep(dt - elapsed)
 
 def run_jitter_mode():
-    # 🔑 Verifikasi Key dulu
     key = input("Masukkan Key untuk Jitter Mode: ").strip()
     if key != REQUIRED_KEY1:
         print("❌ Key salah! Akses ditolak.")
@@ -107,8 +114,8 @@ def run_jitter_mode():
 # 2. MAGNET COLOR RED
 # ============================================================== #
 
-SCAN_WIDTH = 70
-SCAN_HEIGHT = 30
+SCAN_WIDTH  = scale_for_monitor(70)   # auto scale
+SCAN_HEIGHT = scale_for_monitor(30)   # auto scale
 PULL_STRENGTH_COLOR = 2.2
 SLEEP_DELAY = 1 / 165
 HSV_RED_1 = (0, 150, 150)
@@ -124,10 +131,6 @@ def get_color_mask_red(frame):
 
 def aim_loop(ser):
     last_offset = None
-    last_dx, last_dy = 0, 0
-    SMOOTH = 0.35   # semakin tinggi = makin halus
-    MIN_AREA = 25   # buang kontur kecil (noise)
-
     with mss.mss() as sct:
         screen_w = user32.GetSystemMetrics(0)
         screen_h = user32.GetSystemMetrics(1)
@@ -146,11 +149,14 @@ def aim_loop(ser):
         while True:
             if keyboard.is_pressed("f11"):
                 paused = not paused
-                print("⏸️ PAUSED" if paused else "▶️ AKTIF")
+                if paused:
+                    print("⏸️  Magnet *PAUSED* (F11)")
+                else:
+                    print("▶️  Magnet *AKTIF* (F11)")
                 time.sleep(0.4)
 
             if keyboard.is_pressed("f10"):
-                print("⬅️ Kembali ke menu utama...")
+                print("⬅️  Kembali ke menu utama...")
                 time.sleep(1)
                 break
 
@@ -158,7 +164,6 @@ def aim_loop(ser):
                 time.sleep(0.01)
                 continue
 
-            # cek kombinasi tombol
             caps_on = caps() != 0
             left_pressed = lmb() != 0
             right_pressed = rmb() != 0
@@ -168,23 +173,19 @@ def aim_loop(ser):
                 last_offset = None
                 continue
 
-            # ambil gambar
             img = np.array(sct.grab(monitor))
             img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
             mask_red = get_color_mask_red(img)
-            center_x, center_y = img.shape[1] // 2, img.shape[0] // 2
-
+            center_x = img.shape[1] // 2
+            center_y = img.shape[0] // 2
             contours, _ = cv2.findContours(mask_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             if contours:
-                # pilih target terdekat dari crosshair
                 def dist(cnt):
-                    if cv2.contourArea(cnt) < MIN_AREA: 
-                        return float("inf")
                     M = cv2.moments(cnt)
                     if M["m00"] == 0: return float("inf")
-                    cx, cy = M["m10"] / M["m00"], M["m01"] / M["m00"]
+                    cx = M["m10"] / M["m00"]
+                    cy = M["m01"] / M["m00"]
                     return (cx - center_x)**2 + (cy - center_y)**2
-
                 closest = min(contours, key=dist)
                 M = cv2.moments(closest)
                 if M["m00"] != 0:
@@ -192,13 +193,7 @@ def aim_loop(ser):
                     cy = int(M["m01"] / M["m00"])
                     dx = int((cx - center_x) * PULL_STRENGTH_COLOR)
                     dy = int((cy - center_y) * PULL_STRENGTH_COLOR)
-
-                    # smoothing biar ga “jumping”
-                    smooth_dx = int(last_dx * (1 - SMOOTH) + dx * SMOOTH)
-                    smooth_dy = int(last_dy * (1 - SMOOTH) + dy * SMOOTH)
-                    last_dx, last_dy = smooth_dx, smooth_dy
-
-                    last_offset = (smooth_dx, smooth_dy, cx, cy)
+                    last_offset = (dx, dy, cx, cy)
                 else:
                     last_offset = None
             else:
@@ -223,7 +218,6 @@ def aim_loop(ser):
             time.sleep(SLEEP_DELAY)
 
 def run_magnet_mode():
-    # 🔑 Verifikasi Key dulu
     key = input("Masukkan Key untuk Magnet Mode: ").strip()
     if key != REQUIRED_KEY2:
         print("❌ Key salah! Akses ditolak.")
@@ -270,5 +264,3 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
-
-
