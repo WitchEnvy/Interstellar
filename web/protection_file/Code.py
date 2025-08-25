@@ -9,7 +9,6 @@ import mss
 
 # ── KONFIGURASI GLOBAL ────────────────────────────────────────
 BAUD_RATE = 115200
-# shortcut key helpers
 user32    = ctypes.windll.user32
 GetKey    = user32.GetAsyncKeyState
 GetState  = user32.GetKeyState
@@ -20,7 +19,7 @@ caps  = lambda: GetState(VK_CAPS) & 1
 lmb   = lambda: GetKey(VK_LMB) & 0x8000
 rmb   = lambda: GetKey(VK_RMB) & 0x8000
 
-# Key yang harus dimasukkan
+# Key
 REQUIRED_KEY1 = "OM3CMgYkXXh9ADbGUAtapPaknh64vybp"   # untuk Jitter
 REQUIRED_KEY2 = "lyWlPOcUN1LR8JHESWOoThm1T3Xrr1Ax"   # untuk Magnet
 
@@ -87,7 +86,6 @@ def jitter_loop(ser):
             time.sleep(dt - elapsed)
 
 def run_jitter_mode():
-    # 🔑 Verifikasi Key dulu
     key = input("Masukkan Key untuk Jitter Mode: ").strip()
     if key != REQUIRED_KEY1:
         print("❌ Key salah! Akses ditolak.")
@@ -125,14 +123,25 @@ def get_color_mask_red(frame):
 def aim_loop(ser):
     last_offset = None
     with mss.mss() as sct:
+        # ✅ pakai resolusi game (1440x900)
+        game_w = 1440
+        game_h = 900
+
+        # ukuran monitor asli
         screen_w = user32.GetSystemMetrics(0)
         screen_h = user32.GetSystemMetrics(1)
+
+        # cari offset (biar pas ke tengah game window yang di-render)
+        offset_x = (screen_w - game_w) // 2
+        offset_y = (screen_h - game_h) // 2
+
         monitor = {
-            "left": (screen_w // 2) - SCAN_WIDTH // 2,
-            "top": (screen_h // 2) - SCAN_HEIGHT // 2,
+            "left": offset_x + (game_w // 2) - SCAN_WIDTH // 2,
+            "top": offset_y + (game_h // 2) - SCAN_HEIGHT // 2,
             "width": SCAN_WIDTH,
             "height": SCAN_HEIGHT
         }
+
         print("🎯 Mode Magnet Titik Hijau ke Merah aktif:")
         print("- CapsLock ON + Klik Kiri + Klik Kanan")
         print("- CapsLock OFF + Klik Kanan saja")
@@ -211,7 +220,6 @@ def aim_loop(ser):
             time.sleep(SLEEP_DELAY)
 
 def run_magnet_mode():
-    # 🔑 Verifikasi Key dulu
     key = input("Masukkan Key untuk Magnet Mode: ").strip()
     if key != REQUIRED_KEY2:
         print("❌ Key salah! Akses ditolak.")
@@ -258,12 +266,3 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
-
-
-
-
-
-
-
-
-
