@@ -107,10 +107,10 @@ def run_jitter_mode():
 # 2. MAGNET COLOR RED
 # ============================================================== #
 
-SCAN_WIDTH = 65
-SCAN_HEIGHT = 28
+SCAN_WIDTH = 58
+SCAN_HEIGHT = 32
 PULL_STRENGTH_COLOR = 0.80
-SLEEP_DELAY = 1 / 240
+SLEEP_DELAY = 1 / 165
 HSV_RED_1 = (0, 150, 150)
 HSV_RED_2 = (10, 255, 255)
 HSV_RED_3 = (160, 150, 150)
@@ -258,6 +258,7 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
 
 
 
