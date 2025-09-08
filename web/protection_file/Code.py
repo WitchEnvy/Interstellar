@@ -107,9 +107,9 @@ def run_jitter_mode():
 # 2. MAGNET COLOR RED
 # ============================================================== #
 
-SCAN_WIDTH = 58
-SCAN_HEIGHT = 32
-PULL_STRENGTH_COLOR = 0.80
+SCAN_WIDTH = 68
+SCAN_HEIGHT = 42
+PULL_STRENGTH_COLOR = 1.4
 SLEEP_DELAY = 1 / 165
 HSV_RED_1 = (0, 150, 150)
 HSV_RED_2 = (10, 255, 255)
@@ -170,7 +170,7 @@ def aim_loop(ser):
             img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
             mask_red = get_color_mask_red(img)
             center_x = img.shape[1] // 2
-            center_y = img.shape[0] // 2
+            center_y = img.shape[0] // 1
             contours, _ = cv2.findContours(mask_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             if contours:
                 def dist(cnt):
@@ -258,6 +258,7 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
 
 
 
