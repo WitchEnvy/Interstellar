@@ -9,7 +9,6 @@ import mss
 
 # ── KONFIGURASI GLOBAL ────────────────────────────────────────
 BAUD_RATE = 115200
-# shortcut key helpers
 user32    = ctypes.windll.user32
 GetKey    = user32.GetAsyncKeyState
 GetState  = user32.GetKeyState
@@ -20,9 +19,9 @@ caps  = lambda: GetState(VK_CAPS) & 1
 lmb   = lambda: GetKey(VK_LMB) & 0x8000
 rmb   = lambda: GetKey(VK_RMB) & 0x8000
 
-# Key yang harus dimasukkan
-REQUIRED_KEY1 = "OM3CMgYkXXh9ADbGUAtapPaknh64vybp"   # untuk Jitter
-REQUIRED_KEY2 = "lyWlPOcUN1LR8JHESWOoThm1T3Xrr1Ax"   # untuk Magnet
+REQUIRED_KEY1 = "OM3CMgYkXXh9ADbGUAtapPaknh64vybp"   # Jitter
+REQUIRED_KEY2 = "lyWlPOcUN1LR8JHESWOoThm1T3Xrr1Ax"   # Magnet
+REQUIRED_KEY3 = "Xk48g9mA5JYqCzK0Gh12ReUtDp99LmQv"   # Gabungan
 
 def find_port(default="COM3"):
     for p in list_ports.comports():
@@ -45,7 +44,7 @@ def jitter_loop(ser):
     acc_dy = 0.0
     paused = False
 
-    print("🔄 Siap! Tahan CAPSLOCK + LMB + RMB untuk aktif.")
+    print("🔄 Jitter: Tahan CAPSLOCK + LMB + RMB untuk aktif.")
     print("⛔ Tekan F11 untuk pause/resume, F10 untuk kembali ke menu.")
 
     while True:
@@ -61,7 +60,7 @@ def jitter_loop(ser):
             time.sleep(0.4)
 
         if keyboard.is_pressed("f10"):
-            print("⬅️  Kembali ke menu utama...")
+            print("⬅️  Jitter: Kembali ke menu utama...")
             time.sleep(1)
             break
 
@@ -87,7 +86,6 @@ def jitter_loop(ser):
             time.sleep(dt - elapsed)
 
 def run_jitter_mode():
-    # 🔑 Verifikasi Key dulu
     key = input("Masukkan Key untuk Jitter Mode: ").strip()
     if key != REQUIRED_KEY1:
         print("❌ Key salah! Akses ditolak.")
@@ -109,7 +107,7 @@ def run_jitter_mode():
 
 SCAN_WIDTH = 48
 SCAN_HEIGHT = 36
-PULL_STRENGTH_COLOR = 0.60
+PULL_STRENGTH_COLOR = 0.7  # <= Disesuaikan untuk sensitivitas tinggi
 SLEEP_DELAY = 1 / 165
 HSV_RED_1 = (0, 150, 150)
 HSV_RED_2 = (10, 255, 255)
@@ -133,23 +131,20 @@ def aim_loop(ser):
             "width": SCAN_WIDTH,
             "height": SCAN_HEIGHT
         }
-        print("🎯 Mode Magnet Titik Hijau ke Merah aktif:")
-        print("- CapsLock ON + Klik Kiri + Klik Kanan")
-        print("- CapsLock OFF + Klik Kanan saja")
+        print("🎯 Magnet aktif: Titik Hijau ke Merah")
+        print("- CAPSLOCK ON + Klik Kiri + Kanan")
+        print("- CAPSLOCK OFF + Klik Kanan saja")
         print("⛔ Tekan F11 untuk pause/resume, F10 untuk kembali ke menu.")
 
         paused = False
         while True:
             if keyboard.is_pressed("f11"):
                 paused = not paused
-                if paused:
-                    print("⏸️  Magnet *PAUSED* (F11)")
-                else:
-                    print("▶️  Magnet *AKTIF* (F11)")
+                print("⏸️  Magnet *PAUSED* (F11)" if paused else "▶️  Magnet *AKTIF* (F11)")
                 time.sleep(0.4)
 
             if keyboard.is_pressed("f10"):
-                print("⬅️  Kembali ke menu utama...")
+                print("⬅️  Magnet: Kembali ke menu utama...")
                 time.sleep(1)
                 break
 
@@ -157,10 +152,7 @@ def aim_loop(ser):
                 time.sleep(0.01)
                 continue
 
-            caps_on = caps() != 0
-            left_pressed = lmb() != 0
-            right_pressed = rmb() != 0
-            aktif = (caps_on and left_pressed and right_pressed) or (not caps_on and right_pressed)
+            aktif = (caps() and lmb() and rmb()) or (not caps() and rmb())
             if not aktif:
                 time.sleep(0.01)
                 last_offset = None
@@ -211,14 +203,12 @@ def aim_loop(ser):
             time.sleep(SLEEP_DELAY)
 
 def run_magnet_mode():
-    # 🔑 Verifikasi Key dulu
     key = input("Masukkan Key untuk Magnet Mode: ").strip()
     if key != REQUIRED_KEY2:
         print("❌ Key salah! Akses ditolak.")
         time.sleep(2)
         return
 
-    print("≡🧠 Menjalankan Mode Magnet Titik Hijau ke Merah")
     port = find_port()
     print(f"⏳ Menghubungkan ke {port}...")
     try:
@@ -227,6 +217,35 @@ def run_magnet_mode():
         sys.exit(f"⚠️ Port gagal dibuka: {e}")
     print("✅ Terhubung ke Arduino.")
     aim_loop(ser)
+    cv2.destroyAllWindows()
+
+# ============================================================== #
+# 3. COMBINED MODE (JITTER + MAGNET)
+# ============================================================== #
+
+def run_combined_mode():
+    key = input("Masukkan Key untuk Mode Gabungan (Jitter + Magnet): ").strip()
+    if key != REQUIRED_KEY3:
+        print("❌ Key salah! Akses ditolak.")
+        time.sleep(2)
+        return
+
+    port = find_port()
+    print(f"⏳ Menghubungkan ke {port}...")
+    try:
+        ser = pyserial.Serial(port, BAUD_RATE, timeout=0, write_timeout=0.01)
+    except pyserial.SerialException as e:
+        sys.exit(f"⚠️ Port gagal dibuka: {e}")
+    print("✅ Terhubung ke Arduino.")
+
+    jitter_thread = threading.Thread(target=jitter_loop, args=(ser,))
+    magnet_thread = threading.Thread(target=aim_loop, args=(ser,))
+
+    jitter_thread.start()
+    magnet_thread.start()
+
+    jitter_thread.join()
+    magnet_thread.join()
     cv2.destroyAllWindows()
 
 # ============================================================== #
@@ -241,15 +260,18 @@ def main_menu():
         print("=======================================")
         print("1. Only Jitter Mode")
         print("2. Aim Assist For M&K (Only Recon Legends)")
-        print("3. Keluar")
+        print("3. Gabungkan Jitter + Magnet")
+        print("4. Keluar")
         print("=======================================")
-        pilihan = input("Pilih menu (1/2/3): ")
+        pilihan = input("Pilih menu (1/2/3/4): ")
 
         if pilihan == "1":
             run_jitter_mode()
         elif pilihan == "2":
             run_magnet_mode()
         elif pilihan == "3":
+            run_combined_mode()
+        elif pilihan == "4":
             print("Keluar...")
             break
         else:
@@ -258,14 +280,3 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
-
-
-
-
-
-
-
-
-
-
-
