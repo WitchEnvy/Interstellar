@@ -9,6 +9,8 @@ import mss
 
 # ── KONFIGURASI GLOBAL ────────────────────────────────────────
 BAUD_RATE = 115200
+serial_lock = threading.Lock()
+
 user32    = ctypes.windll.user32
 GetKey    = user32.GetAsyncKeyState
 GetState  = user32.GetKeyState
@@ -29,9 +31,9 @@ def find_port(default="COM3"):
             return rf"\\.\{p.name}"
     return rf"\\.\{default}"
 
-# ============================================================== #
-# 1. ONLY JITTER MODE
-# ============================================================== #
+# =============================================================
+# JITTER MODE
+# =============================================================
 
 SHAKE_PX   = 4
 SHAKE_HZ   = 25
@@ -44,23 +46,21 @@ def jitter_loop(ser):
     acc_dy = 0.0
     paused = False
 
-    print("🔄 Jitter: Tahan CAPSLOCK + LMB + RMB untuk aktif.")
-    print("⛔ Tekan F11 untuk pause/resume, F10 untuk kembali ke menu.")
+    print("🔄 Jitter aktif: CAPSLOCK + LMB + RMB")
+    print("⛔ F11 pause/resume, F10 keluar")
 
     while True:
         start = time.time()
 
         if keyboard.is_pressed("f11"):
             paused = not paused
-            if paused:
-                print("⏸️  Jitter *PAUSED* (F11)")
+            print("⏸️  Jitter PAUSED" if paused else "▶️  Jitter AKTIF")
+            with serial_lock:
                 ser.write(b'x\n')
-            else:
-                print("▶️  Jitter *AKTIF* (F11)")
             time.sleep(0.4)
 
         if keyboard.is_pressed("f10"):
-            print("⬅️  Jitter: Kembali ke menu utama...")
+            print("⬅️  Keluar dari Jitter...")
             time.sleep(1)
             break
 
@@ -74,8 +74,12 @@ def jitter_loop(ser):
             acc_dy += PULL_DOWN
             dy = int(acc_dy)
             acc_dy -= dy
-            ser.write(f"{int(round(dx))},{dy}\n".encode())
-            ser.flush()
+            try:
+                with serial_lock:
+                    ser.write(f"{int(round(dx))},{dy}\n".encode())
+                    ser.flush()
+            except:
+                pass
         else:
             phase = 0
             acc_dy = 0.0
@@ -93,21 +97,21 @@ def run_jitter_mode():
         return
 
     port = find_port()
-    print(f"⏳ Menghubungkan ke {port} ...")
+    print(f"⏳ Menghubungkan ke {port}...")
     try:
-        ser = pyserial.Serial(port, BAUD_RATE, timeout=0, write_timeout=0.01)
+        ser = pyserial.Serial(port, BAUD_RATE, timeout=0, write_timeout=0.1)
     except pyserial.SerialException as e:
         sys.exit(f"❌ Port gagal dibuka: {e}")
     print("✅ Terhubung ke Arduino.")
     jitter_loop(ser)
 
-# ============================================================== #
-# 2. MAGNET COLOR RED
-# ============================================================== #
+# =============================================================
+# MAGNET MODE (RED)
+# =============================================================
 
 SCAN_WIDTH = 48
 SCAN_HEIGHT = 36
-PULL_STRENGTH_COLOR = 0.7  # <= Disesuaikan untuk sensitivitas tinggi
+PULL_STRENGTH_COLOR = 0.7
 SLEEP_DELAY = 1 / 165
 HSV_RED_1 = (0, 150, 150)
 HSV_RED_2 = (10, 255, 255)
@@ -131,20 +135,18 @@ def aim_loop(ser):
             "width": SCAN_WIDTH,
             "height": SCAN_HEIGHT
         }
-        print("🎯 Magnet aktif: Titik Hijau ke Merah")
-        print("- CAPSLOCK ON + Klik Kiri + Kanan")
-        print("- CAPSLOCK OFF + Klik Kanan saja")
-        print("⛔ Tekan F11 untuk pause/resume, F10 untuk kembali ke menu.")
+        print("🎯 Magnet aktif - CAPSLOCK + LMB + RMB")
+        print("⛔ F11 pause/resume, F10 keluar")
 
         paused = False
         while True:
             if keyboard.is_pressed("f11"):
                 paused = not paused
-                print("⏸️  Magnet *PAUSED* (F11)" if paused else "▶️  Magnet *AKTIF* (F11)")
+                print("⏸️  Magnet PAUSED" if paused else "▶️  Magnet AKTIF")
                 time.sleep(0.4)
 
             if keyboard.is_pressed("f10"):
-                print("⬅️  Magnet: Kembali ke menu utama...")
+                print("⬅️  Keluar dari Magnet...")
                 time.sleep(1)
                 break
 
@@ -187,17 +189,17 @@ def aim_loop(ser):
             if last_offset:
                 dx, dy, cx, cy = last_offset
                 try:
-                    cmd = f"{dx},{dy}\n"
-                    ser.write(cmd.encode())
-                    ser.flush()
-                except Exception as e:
-                    print(f"Error kirim serial: {e}")
+                    with serial_lock:
+                        ser.write(f"{dx},{dy}\n".encode())
+                        ser.flush()
+                except:
+                    pass
                 cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)
                 cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)
             else:
                 cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)
 
-            cv2.imshow("Magnet Titik Hijau ke Merah", img)
+            cv2.imshow("Magnet", img)
             if cv2.waitKey(1) & 0xFF == 27:
                 break
             time.sleep(SLEEP_DELAY)
@@ -212,16 +214,16 @@ def run_magnet_mode():
     port = find_port()
     print(f"⏳ Menghubungkan ke {port}...")
     try:
-        ser = pyserial.Serial(port, BAUD_RATE, timeout=0, write_timeout=0.01)
+        ser = pyserial.Serial(port, BAUD_RATE, timeout=0, write_timeout=0.1)
     except pyserial.SerialException as e:
         sys.exit(f"⚠️ Port gagal dibuka: {e}")
     print("✅ Terhubung ke Arduino.")
     aim_loop(ser)
     cv2.destroyAllWindows()
 
-# ============================================================== #
-# 3. COMBINED MODE (JITTER + MAGNET)
-# ============================================================== #
+# =============================================================
+# COMBINED MODE (JITTER + MAGNET)
+# =============================================================
 
 def run_combined_mode():
     key = input("Masukkan Key untuk Mode Gabungan (Jitter + Magnet): ").strip()
@@ -233,24 +235,24 @@ def run_combined_mode():
     port = find_port()
     print(f"⏳ Menghubungkan ke {port}...")
     try:
-        ser = pyserial.Serial(port, BAUD_RATE, timeout=0, write_timeout=0.01)
+        ser = pyserial.Serial(port, BAUD_RATE, timeout=0, write_timeout=0.1)
     except pyserial.SerialException as e:
         sys.exit(f"⚠️ Port gagal dibuka: {e}")
     print("✅ Terhubung ke Arduino.")
 
-    jitter_thread = threading.Thread(target=jitter_loop, args=(ser,))
-    magnet_thread = threading.Thread(target=aim_loop, args=(ser,))
+    thread_jitter = threading.Thread(target=jitter_loop, args=(ser,), daemon=True)
+    thread_magnet = threading.Thread(target=aim_loop, args=(ser,), daemon=True)
 
-    jitter_thread.start()
-    magnet_thread.start()
+    thread_jitter.start()
+    thread_magnet.start()
 
-    jitter_thread.join()
-    magnet_thread.join()
+    thread_jitter.join()
+    thread_magnet.join()
     cv2.destroyAllWindows()
 
-# ============================================================== #
+# =============================================================
 # MENU UTAMA
-# ============================================================== #
+# =============================================================
 
 def main_menu():
     while True:
