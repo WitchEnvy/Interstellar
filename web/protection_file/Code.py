@@ -36,7 +36,7 @@ def find_port(default="COM3"):
 # =============================================================
 
 SHAKE_PX   = 4
-SHAKE_HZ   = 35
+SHAKE_HZ   = 26
 PULL_DOWN  = 0.3
 RANDOMIZE  = False
 
@@ -282,4 +282,5 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
 
