@@ -111,7 +111,7 @@ def run_jitter_mode():
 
 SCAN_WIDTH = 68
 SCAN_HEIGHT = 32
-PULL_STRENGTH_COLOR = 1.2
+PULL_STRENGTH_COLOR = 1.8
 SLEEP_DELAY = 1 / 144
 HSV_RED_1 = (0, 150, 150)
 HSV_RED_2 = (10, 255, 255)
@@ -282,6 +282,7 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
 
 
 
