@@ -128,7 +128,7 @@ def aim_loop(ser):
     last_offset = None
     smoothed_dx = 0
     smoothed_dy = 0
-    alpha = 0.3  # smoothing factor, 0 < alpha <= 1 (semakin kecil = lebih halus tapi lebih lambat respon)
+    alpha = 0.6  # smoothing factor, 0 < alpha <= 1 (semakin kecil = lebih halus tapi lebih lambat respon)
 
     with mss.mss() as sct:
         screen_w = user32.GetSystemMetrics(0)
