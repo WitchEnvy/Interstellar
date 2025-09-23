@@ -130,8 +130,8 @@ def aim_loop(ser):
         screen_w = user32.GetSystemMetrics(0)
         screen_h = user32.GetSystemMetrics(1)
         monitor = {
-            "left": (screen_w // 2) - SCAN_WIDTH // 4,
-            "top": (screen_h // 2) - SCAN_HEIGHT // 4,
+            "left": (screen_w // 2) - SCAN_WIDTH // 2,
+            "top": (screen_h // 2) - SCAN_HEIGHT // 2,
             "width": SCAN_WIDTH,
             "height": SCAN_HEIGHT
         }
@@ -284,3 +284,4 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
