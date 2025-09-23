@@ -25,11 +25,11 @@ REQUIRED_KEY1 = "OM3CMgYkXXh9ADbGUAtapPaknh64vybp"   # Jitter
 REQUIRED_KEY2 = "lyWlPOcUN1LR8JHESWOoThm1T3Xrr1Ax"   # Magnet
 REQUIRED_KEY3 = "Xk48g9mA5JYqCzK0Gh12ReUtDp99LmQv"   # Gabungan
 
-def find_port():
+def find_port(default="COM3"):
     for p in list_ports.comports():
         if re.search(r"(Arduino|USB Serial Device)", p.description, re.I):
             return rf"\\.\{p.name}"
-    sys.exit("❌ Port Arduino tidak ditemukan. Pastikan perangkat terhubung dan port tersedia.")
+    return rf"\\.\{default}"
 
 # =============================================================
 # JITTER MODE
@@ -110,8 +110,8 @@ def run_jitter_mode():
 # =============================================================
 
 SCAN_WIDTH = 68
-SCAN_HEIGHT = 30
-PULL_STRENGTH_COLOR = 1.6
+SCAN_HEIGHT = 37
+PULL_STRENGTH_COLOR = 2.4
 SLEEP_DELAY = 1 / 144
 HSV_RED_1 = (0, 150, 150)
 HSV_RED_2 = (10, 255, 255)
@@ -126,6 +126,10 @@ def get_color_mask_red(frame):
 
 def aim_loop(ser):
     last_offset = None
+    smoothed_dx = 0
+    smoothed_dy = 0
+    alpha = 0.3  # smoothing factor, 0 < alpha <= 1 (semakin kecil = lebih halus tapi lebih lambat respon)
+
     with mss.mss() as sct:
         screen_w = user32.GetSystemMetrics(0)
         screen_h = user32.GetSystemMetrics(1)
@@ -135,6 +139,7 @@ def aim_loop(ser):
             "width": SCAN_WIDTH,
             "height": SCAN_HEIGHT
         }
+
         print("🎯 Magnet aktif - CAPSLOCK + LMB + RMB")
         print("⛔ F11 pause/resume, F10 keluar")
 
@@ -165,6 +170,7 @@ def aim_loop(ser):
             mask_red = get_color_mask_red(img)
             center_x = img.shape[1] // 2
             center_y = img.shape[0] // 2
+
             contours, _ = cv2.findContours(mask_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             if contours:
@@ -180,9 +186,14 @@ def aim_loop(ser):
                 if M["m00"] != 0:
                     cx = int(M["m10"] / M["m00"])
                     cy = int(M["m01"] / M["m00"])
-                    dx = int((cx - center_x) * PULL_STRENGTH_COLOR)
-                    dy = int((cy - center_y) * PULL_STRENGTH_COLOR)
-                    last_offset = (dx, dy, cx, cy)
+                    dx = (cx - center_x) * PULL_STRENGTH_COLOR
+                    dy = (cy - center_y) * PULL_STRENGTH_COLOR
+
+                    # smoothing dx, dy agar gerak lebih halus
+                    smoothed_dx = smoothed_dx + alpha * (dx - smoothed_dx)
+                    smoothed_dy = smoothed_dy + alpha * (dy - smoothed_dy)
+
+                    last_offset = (int(smoothed_dx), int(smoothed_dy), cx, cy)
                 else:
                     last_offset = None
             else:
@@ -196,8 +207,8 @@ def aim_loop(ser):
                         ser.flush()
                 except:
                     pass
-                cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)
-                cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)
+                cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)   # titik hijau tengah layar
+                cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)               # titik merah tengah target
             else:
                 cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)
 
@@ -284,5 +295,3 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
-
-
