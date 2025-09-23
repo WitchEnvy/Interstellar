@@ -25,11 +25,11 @@ REQUIRED_KEY1 = "OM3CMgYkXXh9ADbGUAtapPaknh64vybp"   # Jitter
 REQUIRED_KEY2 = "lyWlPOcUN1LR8JHESWOoThm1T3Xrr1Ax"   # Magnet
 REQUIRED_KEY3 = "Xk48g9mA5JYqCzK0Gh12ReUtDp99LmQv"   # Gabungan
 
-def find_port(default="COM3"):
+def find_port():
     for p in list_ports.comports():
         if re.search(r"(Arduino|USB Serial Device)", p.description, re.I):
             return rf"\\.\{p.name}"
-    return rf"\\.\{default}"
+    sys.exit("❌ Port Arduino tidak ditemukan. Pastikan perangkat terhubung dan port tersedia.")
 
 # =============================================================
 # JITTER MODE
