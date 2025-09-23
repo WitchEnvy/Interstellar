@@ -168,14 +168,8 @@ def aim_loop(ser):
             contours, _ = cv2.findContours(mask_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             if contours:
-                def dist(cnt):
-                    M = cv2.moments(cnt)
-                    if M["m00"] == 0: return float("inf")
-                    cx = M["m10"] / M["m00"]
-                    cy = M["m01"] / M["m00"]
-                    return (cx - center_x)**2 + (cy - center_y)**2
-
-                closest = min(contours, key=dist)
+                # Pilih kontur terbesar (target utama) supaya centroid lebih condong ke tengah badan target
+                closest = max(contours, key=cv2.contourArea)
                 M = cv2.moments(closest)
                 if M["m00"] != 0:
                     cx = int(M["m10"] / M["m00"])
@@ -284,18 +278,3 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
