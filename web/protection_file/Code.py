@@ -126,29 +126,27 @@ def get_color_mask_red(frame):
 
 def aim_loop(ser):
     last_offset = None
-    target_center_x = None
-    target_center_y = None
-
     with mss.mss() as sct:
         screen_w = user32.GetSystemMetrics(0)
         screen_h = user32.GetSystemMetrics(1)
-
-        default_center_x = screen_w // 2
-        default_center_y = screen_h // 2
-
+        monitor = {
+            "left": (screen_w // 2) - SCAN_WIDTH // 4,
+            "top": (screen_h // 2) - SCAN_HEIGHT // 4,
+            "width": SCAN_WIDTH,
+            "height": SCAN_HEIGHT
+        }
         print("🎯 Magnet aktif - CAPSLOCK + LMB + RMB")
         print("⛔ F11 pause/resume, F10 keluar")
 
         paused = False
-
         while True:
             if keyboard.is_pressed("f11"):
                 paused = not paused
-                print("⏸️ Magnet PAUSED" if paused else "▶️ Magnet AKTIF")
+                print("⏸️  Magnet PAUSED" if paused else "▶️  Magnet AKTIF")
                 time.sleep(0.4)
 
             if keyboard.is_pressed("f10"):
-                print("⬅️ Keluar dari Magnet...")
+                print("⬅️  Keluar dari Magnet...")
                 time.sleep(1)
                 break
 
@@ -162,57 +160,33 @@ def aim_loop(ser):
                 last_offset = None
                 continue
 
-            # Gunakan posisi target terakhir, kalau belum ada pakai tengah layar
-            center_global_x = target_center_x if target_center_x is not None else default_center_x
-            center_global_y = target_center_y if target_center_y is not None else default_center_y
-
-            monitor = {
-                "left": max(0, center_global_x - SCAN_WIDTH // 2),
-                "top": max(0, center_global_y - SCAN_HEIGHT // 2),
-                "width": SCAN_WIDTH,
-                "height": SCAN_HEIGHT
-            }
-
             img = np.array(sct.grab(monitor))
             img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-
             mask_red = get_color_mask_red(img)
             center_x = img.shape[1] // 2
             center_y = img.shape[0] // 2
-
             contours, _ = cv2.findContours(mask_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             if contours:
                 def dist(cnt):
                     M = cv2.moments(cnt)
-                    if M["m00"] == 0:
-                        return float("inf")
+                    if M["m00"] == 0: return float("inf")
                     cx = M["m10"] / M["m00"]
                     cy = M["m01"] / M["m00"]
                     return (cx - center_x)**2 + (cy - center_y)**2
 
                 closest = min(contours, key=dist)
                 M = cv2.moments(closest)
-
                 if M["m00"] != 0:
                     cx = int(M["m10"] / M["m00"])
                     cy = int(M["m01"] / M["m00"])
-
-                    # Update posisi target global agar scan pindah ke sini di frame berikutnya
-                    target_center_x = monitor["left"] + cx
-                    target_center_y = monitor["top"] + cy
-
                     dx = int((cx - center_x) * PULL_STRENGTH_COLOR)
                     dy = int((cy - center_y) * PULL_STRENGTH_COLOR)
-
                     last_offset = (dx, dy, cx, cy)
                 else:
                     last_offset = None
             else:
                 last_offset = None
-                # Kamu bisa reset ke tengah layar jika mau
-                # target_center_x = default_center_x
-                # target_center_y = default_center_y
 
             if last_offset:
                 dx, dy, cx, cy = last_offset
@@ -222,16 +196,14 @@ def aim_loop(ser):
                         ser.flush()
                 except:
                     pass
-
-                cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)  # Titik tengah
-                cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)              # Titik target
+                cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)
+                cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)
             else:
                 cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)
 
             cv2.imshow("Magnet", img)
             if cv2.waitKey(1) & 0xFF == 27:
                 break
-
             time.sleep(SLEEP_DELAY)
 
 def run_magnet_mode():
@@ -312,6 +284,7 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
 
 
 
