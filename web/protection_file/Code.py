@@ -144,11 +144,11 @@ def aim_loop(ser):
         while True:
             if keyboard.is_pressed("f11"):
                 paused = not paused
-                print("⏸️  Magnet PAUSED" if paused else "▶️  Magnet AKTIF")
+                print("⏸️ Magnet PAUSED" if paused else "▶️ Magnet AKTIF")
                 time.sleep(0.4)
 
             if keyboard.is_pressed("f10"):
-                print("⬅️  Keluar dari Magnet...")
+                print("⬅️ Keluar dari Magnet...")
                 time.sleep(1)
                 break
 
@@ -162,14 +162,13 @@ def aim_loop(ser):
                 last_offset = None
                 continue
 
-            # Gunakan posisi target terakhir, jika belum ada, pakai tengah layar
-            center_x_global = target_center_x if target_center_x is not None else default_center_x
-            center_y_global = target_center_y if target_center_y is not None else default_center_y
+            # Gunakan posisi target terakhir, kalau belum ada pakai tengah layar
+            center_global_x = target_center_x if target_center_x is not None else default_center_x
+            center_global_y = target_center_y if target_center_y is not None else default_center_y
 
-            # Hitung posisi monitor (scan area) agar center ada di tengah target
             monitor = {
-                "left": max(0, center_x_global - SCAN_WIDTH // 2),
-                "top": max(0, center_y_global - SCAN_HEIGHT // 2),
+                "left": max(0, center_global_x - SCAN_WIDTH // 2),
+                "top": max(0, center_global_y - SCAN_HEIGHT // 2),
                 "width": SCAN_WIDTH,
                 "height": SCAN_HEIGHT
             }
@@ -199,7 +198,7 @@ def aim_loop(ser):
                     cx = int(M["m10"] / M["m00"])
                     cy = int(M["m01"] / M["m00"])
 
-                    # Konversi posisi lokal ke global
+                    # Update posisi target global agar scan pindah ke sini di frame berikutnya
                     target_center_x = monitor["left"] + cx
                     target_center_y = monitor["top"] + cy
 
@@ -211,8 +210,9 @@ def aim_loop(ser):
                     last_offset = None
             else:
                 last_offset = None
-                # Opsional: reset ke tengah jika tidak ada target
-                # target_center_x, target_center_y = default_center_x, default_center_y
+                # Kamu bisa reset ke tengah layar jika mau
+                # target_center_x = default_center_x
+                # target_center_y = default_center_y
 
             if last_offset:
                 dx, dy, cx, cy = last_offset
@@ -223,9 +223,8 @@ def aim_loop(ser):
                 except:
                     pass
 
-                # Tampilkan titik-titik bantu
-                cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)
-                cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)
+                cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)  # Titik tengah
+                cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)              # Titik target
             else:
                 cv2.circle(img, (center_x, center_y), 5, (0, 255, 0), -1)
 
@@ -313,6 +312,7 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
 
 
 
