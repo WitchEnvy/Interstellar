@@ -1,0 +1,25 @@
+<rss version = "2.0">
+	<channel>
+		<title> Aion Ranking </title>
+		<link> http://79.175.67.119/btittle/result </link>
+		<description> Aion ranking RSS Feed </description>
+		<pubDate> Wednesday, 08 May 2019, 09:53:32 +0800 </pubDate>
+		<lastBuildDate> Wednesday, 08 May 2019, 09:53:32 +0800 </lastBuildDate>
+			<item> 
+				<title> Aion Ranking </title>
+				<title_desc> Titit </title_desc>
+				<actorid> Joung </actorid>
+				<category> player </category> 
+				<description> Titit </description> 
+			</item>
+			<item>
+				<title> Aion Ranking </title>
+				<category> player </category>
+				<charId> 328152 </charId>
+				<charName> Joung </charName>
+				<titleDescription> Titit </titleDescription>
+				<skintype> 0 </skintype>
+				<insertDate>Tue, 22 Jan 2023 10:00:27 +0900</insertDate>
+			</item>
+	</channel>
+</rss>

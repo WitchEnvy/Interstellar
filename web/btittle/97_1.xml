@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<channel>
+    <item>
+        <item>
+            <title>ABCDEFG</title>
+            <titleDescription>ABC</titleDescription>
+            <charId>100776449</charId>
+            <category>Player</category>
+            <charName>Reian</charName>
+            <skintype>1</skintype>
+            <insertDate>Tue, 22 Jan 2013 10:00:27 +0900</insertDate>
+        </item>
+		<item>
+			<title>Over</title>
+			<titleDescription>Over</titleDescription>
+			<charId>100776449</charId>
+			<category>Optimus</category>
+			<charName>Reian</charName>
+			<skintype>1</skintype>
+		</item>
+		<item>
+			<title>Titit</title>
+			<titleDescription>Titit</titleDescription>
+			<charId>328152</charId>
+			<category>Optimus</category>
+			<charName>Joung</charName>
+			<skintype>1</skintype>
+		</item>
+    </item>
+</channel>

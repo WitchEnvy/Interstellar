@@ -1,0 +1,17 @@
+
+<rss version = "2.0">
+	<channel>
+		<title> Aion Ranking </title>
+		<link> http://217.227.25.30:99/title/result </link>
+		<description> Aion ranking RSS Feed </description>
+		<pubDate> Wednesday, 08 May 2019, 09:53:32 +0800 </pubDate>
+		<lastBuildDate> Wednesday, 08 May 2019, 09:53:32 +0800 </lastBuildDate>
+			<item> 
+				<title> wenl </title>
+				<title_desc> ADMIN </title_desc>
+				<actorid> 1113 </actorid>
+				<category> player </category> 
+				<description> aaa </description> 
+			</item>
+	</channel>
+</rss>
