@@ -25,11 +25,11 @@
 			<skintype>1</skintype>
 		</item>
 		<item>
-			<title> フ ァ ッ ク ユー  </title>
-			<titleDescription> フ ァ ッ ク ユー  </titleDescription>
-			<charId>773630</charId>
+			<title> Walkers of Light </title>
+			<titleDescription> Walkers of Light </titleDescription>
+			<charId>246300</charId>
 			<category>Player</category>
-			<charName>Yukihira</charName>
+			<charName>Silva</charName>
 			<skintype>1</skintype>
 		</item>
 		<item>
@@ -163,10 +163,11 @@
 		<item>
 			<title> Envy Development </title>
 			<titleDescription> Envy Development </titleDescription>
-			<charId>325102</charId>
+			<charId>132889</charId>
 			<category>STAFF</category>
-			<charName>Kazumi</charName>
+			<charName>Null</charName>
 			<skintype>1</skintype>
 		</item>
 	</item>
 </channel>
+
